@@ -1,0 +1,63 @@
+import { db } from "@/lib/db";
+import { files } from "@/lib/db/schema";
+import { auth } from "@clerk/nextjs/server";
+import { and, eq } from "drizzle-orm";
+import ImageKit from "imagekit";
+import { NextRequest, NextResponse } from "next/server";
+
+//Image Kit Credentials are here----------
+const imagekit = new ImageKit({
+  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "",
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
+  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "",
+});
+//Image Kit Credentials are here----------
+
+export async function DELETE(
+  request: NextRequest,
+  props: { params: Promise<{ fileId: string }> }
+) {
+  try {
+    const { userId } = await auth();
+  
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  
+    const { fileId } = await props.params;
+  
+    if (!fileId) {
+      return NextResponse.json({ error: "File Id is required" }, { status: 401 });
+    }
+
+    const [file] = await db
+    .select()
+    .from(files)
+    .where(
+      and(
+        eq(files.id, fileId),
+        eq(files.userId, userId)
+      )
+    )
+
+    if (!file) {
+      return NextResponse.json({ error: "File not found" }, { status: 401 })
+    }
+
+    // Delete file form imageKit if it not a folder
+
+    if (!file.isFolder) {
+      try {
+        let fileIdInImagekit = null
+
+        if (file.fileUrl) {
+          const urlWithQuery = file.fileUrl.split("?")[0]
+        }
+      } catch (error) {
+        
+      }
+    }
+  } catch (error) {
+    
+  }
+}
