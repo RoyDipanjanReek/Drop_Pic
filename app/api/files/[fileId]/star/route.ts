@@ -15,37 +15,34 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const {fileId} = await props.params
+    const { fileId } = await props.params;
 
-    if(!fileId) {
-        return NextResponse.json({ error: "file id is required" }, { status: 401 });
+    if (!fileId) {
+      return NextResponse.json(
+        { error: "file id is required" },
+        { status: 401 }
+      );
     }
 
     const [file] = await db
-    .select()
-    .from(files)
-    .where(
-        and(
-            eq(files.id , fileId),
-            eq(files.userId, userId)
-        )
-    )
+      .select()
+      .from(files)
+      .where(and(eq(files.id, fileId), eq(files.userId, userId)));
 
-    if(!file) {
-        return NextResponse.json({ error: "file not found" }, { status: 401 });
+    if (!file) {
+      return NextResponse.json({ error: "file not found" }, { status: 401 });
     }
 
-    // toggle the star 
-    const updatedFiles = await db.update(files).set({isStarred: !file.isStarred}).where(
-        and(
-            eq(files.id , fileId),
-            eq(files.userId, userId)
-        ) 
-    ).returning()
+    // toggle the star
+    const updatedFiles = await db
+      .update(files)
+      .set({ isStarred: !file.isStarred })
+      .where(and(eq(files.id, fileId), eq(files.userId, userId)))
+      .returning();
 
-    const updateFile = updatedFiles[0]
+    const updateFile = updatedFiles[0];
 
-    return NextResponse.json(updateFile)
+    return NextResponse.json(updateFile);
   } catch (error) {
     return NextResponse.json({ error: "Error to mark star" }, { status: 401 });
   }
